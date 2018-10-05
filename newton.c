@@ -5,18 +5,22 @@
 #include<math.h>
 #include<time.h>
 #define M_pi 3.14159
+
+double *valuesx,*valuesy;
+int ** rgb,**convergence;
+float d1;
+int d;	
+float rgbscaling;
+int threads;
+float div1;
+int dimension;
+
 long double measuretime(struct timespec ts,struct timespec ts1);
+void newtonmethod(int *);
 void mul_cpx_mainfile(double *a_re,double *a_im,double *b_re,double *b_im,int k);
-void newtonmethod(double complex a,int d,int *n,double *valuesx,double *valuesy,long int dimension,int *result);
 int main(int argc, char *argv[])
 {struct timespec ts,ts1;
 	timespec_get(&ts,TIME_UTC);
-	int iter;	int d;
-	float rgbscaling;
-	int threads,dimension;
-	float div;
-	int i,result,n,j,counter;
-	int flag=0;
 	d=strtol(argv[3],NULL,10);
 	rgbscaling=16581375/(d);
 
@@ -26,44 +30,81 @@ int main(int argc, char *argv[])
 	else
 	{threads=strtol((strtok(argv[2], "-t")),NULL,10); 
 		dimension=strtol((strtok(argv[1],"-l")),NULL,10);}
-	div=(4.0/(dimension-1));
-	printf("%0.4f",div);
-	int root;
-	float d1=(float) (d);	
-if(d==1)
-{iter=20;}
-else{iter=50;}
-	int * esentries = (int*) malloc(sizeof(int) *(dimension)* (dimension)*(dimension));
-	int ** rgb= (int**) malloc(sizeof(int*) * (dimension));
-	for ( size_t ix = 0, jx = 0; ix <dimension; ++ix, jx+=3*(dimension))
-		rgb[ix] = esentries + jx;
+	div1=(4.0/(dimension-1));
+	printf("%0.4f",div1);
+	valuesx=(double*) malloc(sizeof(double)*dimension);
+	valuesy=(double*) malloc(sizeof(double)*dimension);
+        int * esentries = (int*) malloc(sizeof(int)*(dimension) * (dimension)*(dimension));
+      	rgb= (int**) malloc(sizeof(int*) * (dimension));
+        for ( size_t ix = 0, jx = 0; ix <dimension; ++ix, jx+=3*(dimension))
+                rgb[ix] = esentries + jx;
 
-	int * fsentries = (int*) malloc(sizeof(int)*(dimension) * (dimension)*(dimension));
-	int ** convergence= (int**) malloc(sizeof(int*) * (dimension));
-	for ( size_t ix = 0, jx = 0; ix <dimension; ++ix, jx+=3*(dimension) )
-		convergence[ix] = fsentries + jx;
-	double are;
-	double aim;
-	double bre;
-	double bim;
-	double *valuesx=(double*) malloc(sizeof(double)*dimension);
-	double *valuesy=(double*) malloc(sizeof(double)*dimension);	 
+        int * fsentries = (int*) malloc(sizeof(int)*(dimension) * (dimension)*(dimension));
+        convergence= (int**) malloc(sizeof(int*) * (dimension));
+        for ( size_t ix = 0, jx = 0; ix <dimension; ++ix, jx+=3*(dimension) )
+                convergence[ix] = fsentries + jx;
+
+	d1=(float) (d);	
 	FILE *write,*write1;
 	write=fopen("read.ppm","w");
 	write1=fopen("read1.ppm","w");
 	printf("d=%d",d);
-	for(i=0;i<d;i++)
+	for(int i=0;i<d;i++)
 	{	valuesx[i]=cos(2*i*M_pi/(d));
 		valuesy[i]=sin(2*i*M_pi/(d));
 
 	}
-	for(i=0;i<dimension;i++)
-	{counter=0;
-		for(j=0;j<dimension;j++)
+	for(int i=0;i<dimension;i++)
+	{newtonmethod(&i);
+	}
+	fprintf(write,"%s\n","P3");
+	fprintf(write,"%d %d\n",dimension,dimension);
+	fprintf(write,"%d\n",255);
+	for(int i=0;i<dimension;i++)
+	{//printf("\n");
+		for(int j=0;j<3*(dimension);j++)
+		{fprintf(write,"%d ",rgb[i][j]);
+		}fprintf(write,"\n");	}
+	int iter=50;
+	fclose(write);
+	fprintf(write1,"%s\n","P3");
+		fprintf(write1,"%d %d\n",dimension,dimension);
+		fprintf(write1,"%d\n",iter);
+
+		for(int i=0;i<dimension;i++)
+		{//printf("\n");
+		for(int j=0;j<3*(dimension);j++)
+		{fprintf(write1,"%d ",convergence[i][j]);
+	}fprintf(write1,"\n");
+	}
+
+	
+	timespec_get(&ts1,TIME_UTC);
+	long double totaltime=measuretime(ts,ts1);
+	printf("time=%Lf",totaltime);
+
+//	fclose(write1);
+	free(valuesx);
+	free(valuesy);
+	free(fsentries);
+	free(esentries);
+	free(rgb);
+	free(convergence);
+	printf("threads is %d Dimension is %d",threads,dimension);
+	return 0;
+}
+
+void newtonmethod(int *i)
+{int n,result,flag;
+	flag=0;
+	int counter=0;
+	int root;
+	double are,aim,bre,bim;
+		for(int j=0;j<dimension;j++)
 		{	n=0;
 			result=1;
-			are=(-2+div*j);
-			aim=(-2+(div*i));
+			 are=(-2+div1*j);
+			aim=(-2+(div1**i));
 			flag=0;
 			for(int k=0;k<100;k++)
 			{//	printf("are=%f",are);
@@ -90,50 +131,14 @@ else{iter=50;}
 						}	}
 				}}
 			root=result*rgbscaling	;
-				
-			rgb[i][counter]=(int)root/(255*255);
-                        rgb[i][counter+1]=(int)(root/255)%255;
-                        rgb[i][counter+2]=(int) root%255;
-                        convergence[i][counter]=(int)n;
-                        convergence[i][counter+1]=(int)n;
-                        convergence[i][counter+2]=(int)n;
+			rgb[*i][counter]=(int)root/(255*255);
+                        rgb[*i][counter+1]=(int)(root/255)%255;
+                        rgb[*i][counter+2]=(int) root%255;
+                        convergence[*i][counter]=(int)n;
+                        convergence[*i][counter+1]=(int)n;
+                        convergence[*i][counter+2]=(int)n;
 			counter=counter+3;
-		}
-	}
-	fprintf(write,"%s\n","P3");
-	fprintf(write,"%d %d\n",dimension,dimension);
-	fprintf(write,"%d\n",255);
-	for(i=0;i<dimension;i++)
-	{//printf("\n");
-		for(int j=0;j<3*(dimension);j++)
-		{fprintf(write,"%d ",rgb[i][j]);
-		}fprintf(write,"\n");
-	}
-	fclose(write);
-	fprintf(write1,"%s\n","P3");
-		fprintf(write1,"%d %d\n",dimension,dimension);
-		fprintf(write1,"%d\n",iter);
-
-		for(i=0;i<dimension;i++)
-		{//printf("\n");
-		for(int j=0;j<3*(dimension);j++)
-		{fprintf(write1,"%d ",convergence[i][j]);
-	}fprintf(write1,"\n");
-	}
-	timespec_get(&ts1,TIME_UTC);
-	long double totaltime=measuretime(ts,ts1);
-	printf("time=%Lf",totaltime);
-
-	fclose(write1);
-	free(valuesx);
-	free(valuesy);
-	free(fsentries);
-	free(esentries);
-	free(rgb);
-	free(convergence);
-	printf("threads is %d Dimension is %d",threads,dimension);
-	return 0;
-}
+		}}
 void mul_cpx_mainfile(double *a_re,double *a_im,double *b_re,double *b_im,int k){
 	double a,b;
 	for(int j=0;j<=k;j++)
