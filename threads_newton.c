@@ -59,25 +59,33 @@ int main(int argc, char *argv[])
 	write1=fopen("read1.ppm","w");
 	printf("d=%d",d);
 	for(int i=0;i<d;i++)
-	{	valuesx[i]=cos(2*i*M_pi/(d));
-		valuesy[i]=sin(2*i*M_pi/(d));
+	{	valuesx[i]=cos(2*i*M_PI/(d));
+		valuesy[i]=sin(2*i*M_PI/(d));
 
 	}
-	for(int i=0,tx=0; i<threads ; ++i , tx+= block_size)
+	for(int ix,tx=0;tx<dimension ; tx+= 1)
 	{
+		int i=tx%threads;
 		size_t * args = malloc(sizeof(size_t));
 		*args= tx;
 		pthread_create(&compute_threads[i],NULL,newtonmethod,(void*)args);
 		
 	}
+	for(int tx=0; tx<threads;++tx){
+		if(pthread_join(compute_threads[tx],NULL)){
+		printf("Error  \n");
+		exit(1);
+		}
+	}
+	
 	fprintf(write,"%s\n","P3");
 	fprintf(write,"%d %d\n",dimension,dimension);
 	fprintf(write,"%d\n",255);
 	for(int i=0;i<dimension;i++)
-	{printf("\n");
+	{//printf("\n");
 		for(int j=0;j<3*(dimension);j++)
 		{fprintf(write,"%d ",rgb[i][j]);
-                 printf("rgb print %d /n", rgb[i][j]);
+               //  printf("rgb print %d /n", rgb[i][j]);
 		}fprintf(write,"\n");	}
 	int iter=50;
 	fclose(write);
@@ -98,12 +106,6 @@ int main(int argc, char *argv[])
 	printf("time=%Lf",totaltime);
 
 //	fclose(write1);
-	for(int tx=0; tx<threads;++tx){
-		if(pthread_join(compute_threads[tx],NULL)){
-		printf("Error  \n");
-		exit(1);
-		}
-	}
 	free(compute_threads);
 	free(valuesx);
 	free(valuesy);
@@ -118,18 +120,17 @@ int main(int argc, char *argv[])
 void* newtonmethod(void *restrict arg)
 {
 	size_t input= *((size_t*)arg);
-	int new_block_size = input +block_size < dimension ? input : dimension;
+	int new_block_size = input +1 < dimension ? input+1 : dimension;
 	int n,result,flag;
 	free(arg);
 	for ( size_t i=input; i<new_block_size; i++){ 	
 	flag=0;
-//	printf("input =  %d /n",input);
 	int counter=0;
 	int root;
 	double are,aim,bre,bim;
 		for(int j=0;j<dimension;j++)
 		{	n=0;
-			result=1;
+			result=0;
 			 are=(-2+div1*j);
 			aim=(-2+(div1*i));
 			flag=0;
@@ -157,13 +158,10 @@ void* newtonmethod(void *restrict arg)
 							break;
 						}	}
 				}}
-		//	printf("reslt = %d/n",result);
 			root=result*rgbscaling	;
-		//	printf("root = %d/,",root);
 			rgb[i][counter]=(int)root/(255*255);
                         rgb[i][counter+1]=(int)(root/255)%255;
                         rgb[i][counter+2]=(int) root%255;
-		//	printf("rgb[i][couter] = %d/n",rgb[i][counter]);
                         convergence[i][counter]=(int)n;
                         convergence[i][counter+1]=(int)n;
                         convergence[i][counter+2]=(int)n;
