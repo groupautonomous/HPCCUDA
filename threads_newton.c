@@ -38,6 +38,9 @@ int main(int argc, char *argv[])
 	else
 	{threads=strtol((strtok(argv[2], "-t")),NULL,10); 
 		dimension=strtol((strtok(argv[1],"-l")),NULL,10);}
+if(threads==1)
+	block_size=1;
+else
 	block_size = threads-1;
 	pthread_t* compute_threads = (pthread_t*)malloc(sizeof(pthread_t*)*threads);
 	div1=(4.0/(dimension-1));
