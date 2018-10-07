@@ -38,7 +38,7 @@ int main(int argc, char *argv[])
 	else
 	{threads=strtol((strtok(argv[2], "-t")),NULL,10); 
 		dimension=strtol((strtok(argv[1],"-l")),NULL,10);}
-	block_size = dimension/threads;
+	block_size = threads-1;
 	pthread_t* compute_threads = (pthread_t*)malloc(sizeof(pthread_t*)*threads);
 	div1=(4.0/(dimension-1));
 	printf("%0.4f",div1);
@@ -63,13 +63,16 @@ int main(int argc, char *argv[])
 		valuesy[i]=sin(2*i*M_PI/(d));
 
 	}
-	for(int ix,tx=0;tx<dimension ; tx+= 1)
+	int ix=0;
+	for(int tx=0;tx<dimension ; tx+= block_size)
 	{
-		int i=tx%threads;
+		if(ix==threads)
+		{ix=0;}
+		
 		size_t * args = malloc(sizeof(size_t));
 		*args= tx;
-		pthread_create(&compute_threads[i],NULL,newtonmethod,(void*)args);
-		
+		pthread_create(&compute_threads[ix],NULL,newtonmethod,(void*)args);
+		ix=ix+1;
 	}
 	for(int tx=0; tx<threads;++tx){
 		if(pthread_join(compute_threads[tx],NULL)){
@@ -118,9 +121,10 @@ int main(int argc, char *argv[])
 }
 
 void* newtonmethod(void *restrict arg)
-{
+{	char*p;
+
 	size_t input= *((size_t*)arg);
-	int new_block_size = input +1 < dimension ? input+1 : dimension;
+	int new_block_size = input +block_size < dimension ? input+block_size : dimension;
 	int n,result,flag;
 	free(arg);
 	for ( size_t i=input; i<new_block_size; i++){ 	
