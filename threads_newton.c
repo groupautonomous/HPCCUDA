@@ -21,7 +21,6 @@ FILE *write,*write1;
 pthread_mutex_t mutex_write;
 int block_size;
 char **p;
-
 char **conv;
 /*function declaration*/
 long double measuretime(struct timespec ts,struct timespec ts1);
@@ -31,6 +30,7 @@ void mul_cpx_mainfile(double *a_re,double *a_im,double *b_re,double *b_im,int k)
 int main(int argc, char *argv[])
 {struct timespec ts,ts1;
 	long double totaltime=0;
+	for(int op=0;op<10;op++){
 	timespec_get(&ts,TIME_UTC);
 	d=strtol(argv[3],NULL,10);
 	pthread_mutex_init(&mutex_write, NULL);
@@ -40,14 +40,11 @@ int main(int argc, char *argv[])
 		dimension=strtol((strtok(argv[2],"-l")),NULL,10);}
 	else
 	{threads=strtol((strtok(argv[2], "-t")),NULL,10); 
-		dimension=strtol((strtok(argv[1],"-l")),NULL,10);}
-	if(threads==1)
-		block_size=1;
-	else
-		block_size = 1;
+		dimension=strtol((strtok(argv[1],"-l")),NULL,10);
+	}
+		block_size=dimension/threads;
 	pthread_t* compute_threads = (pthread_t*)malloc(sizeof(pthread_t*)*threads);
 	div1=(4.0/(dimension-1));
-	printf("%0.4f",div1);
 	valuesx=(double*) malloc(sizeof(double)*dimension);
 	valuesy=(double*) malloc(sizeof(double)*dimension);
 	p=(char**)malloc(sizeof(char*)*dimension);
@@ -58,24 +55,24 @@ int main(int argc, char *argv[])
 		conv[i]=(char*)malloc(sizeof(char)*dimension*15);
 
 	d1=(float) (d);	
-	write=fopen("read.ppm","w");
-	write1=fopen("read1.ppm","w");
-	printf("d=%d",d);
+	char trgb[]="read.ppm";
+	char tcon[]="read1.ppm";
+	write=fopen(trgb,"w");
+	write1=fopen(tcon,"w");
 	for(int i=0;i<d;i++)
 	{	valuesx[i]=cos(2*i*M_PI/(d));
 		valuesy[i]=sin(2*i*M_PI/(d));
 
 	}
 	int ix=0;
+	int count =0;
 	for(int tx=0;tx<dimension ; tx+= block_size)
-	{
-		if(ix==threads)
-		{ix=0;}
+	{//	printf("%d",count);
 		size_t * args = malloc(sizeof(size_t));
 		*args= tx;
 		pthread_create(&compute_threads[ix],NULL,newtonmethod,(void*)args);
+		count=count+1;
 		ix=ix+1;
-		
 	}
 	for(int tx=0; tx<threads;++tx){
 		if(pthread_join(compute_threads[tx],NULL)){
@@ -98,16 +95,17 @@ int main(int argc, char *argv[])
 		fputs(conv[j],write1);
 
 
+fclose(write1);
 
 timespec_get(&ts1,TIME_UTC);
-totaltime=measuretime(ts,ts1);
-printf("time=%Lf",totaltime);
-
-fclose(write1);
+totaltime=totaltime+measuretime(ts,ts1);
+if(op!=9)
+{remove(trgb);
+ 	remove(tcon);}
 free(compute_threads);
 free(valuesx);
-free(valuesy);
-printf("threads is %d Dimension is %d",threads,dimension);
+free(valuesy);}
+printf("%Lf",totaltime/10);
 return 0;
 }
 
@@ -168,10 +166,11 @@ void mul_cpx_mainfile(double *a_re,double *a_im,double *b_re,double *b_im,int k)
 	double a,b;
 	for(int j=0;j<=k;j++)
 	{       if(k==0)
-		{*a_re=1;
-			break;}
+		{	*a_re=1;
+			break;
+		}
 		if(j==1)
-		{ a=*b_re;
+		{	 a=*b_re;
 			b=*b_im;
 			*a_re=a;
 			*a_im=b;
@@ -180,10 +179,11 @@ void mul_cpx_mainfile(double *a_re,double *a_im,double *b_re,double *b_im,int k)
 
 
 		else
-		{*a_re=a**b_re-b**b_im;
+		{	*a_re=a**b_re-b**b_im;
 			*a_im=(*b_re*b)+(a**b_im);
 			a=*a_re;
-			b=*a_im;}
+			b=*a_im;
+		}
 
 
 	}}
