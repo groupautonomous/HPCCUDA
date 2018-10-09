@@ -21,102 +21,104 @@ FILE *write,*write1;
 pthread_mutex_t mutex_write;
 int block_size;
 char **p;
+char *item_done;
 char **conv;
 /*function declaration*/
 long double measuretime(struct timespec ts,struct timespec ts1);
 void *newtonmethod(void * restrict arg);
+void * write_main(void * restrict args);
 void mul_cpx_mainfile(double *a_re,double *a_im,double *b_re,double *b_im,int k);
-
 int main(int argc, char *argv[])
 {struct timespec ts,ts1;
 	long double totaltime=0;
-	for(int op=0;op<10;op++){
-	timespec_get(&ts,TIME_UTC);
-	d=strtol(argv[3],NULL,10);
-	pthread_mutex_init(&mutex_write, NULL);
-	rgbscaling=16581375/(d);
-	if(argv[1][1]>argv[2][1])
-	{threads=strtol((strtok(argv[1], "-t")),NULL,10); 
-		dimension=strtol((strtok(argv[2],"-l")),NULL,10);}
-	else
-	{threads=strtol((strtok(argv[2], "-t")),NULL,10); 
-		dimension=strtol((strtok(argv[1],"-l")),NULL,10);
-	}
-		block_size=dimension/threads;
-	pthread_t* compute_threads = (pthread_t*)malloc(sizeof(pthread_t*)*threads);
-	div1=(4.0/(dimension-1));
-	valuesx=(double*) malloc(sizeof(double)*dimension);
-	valuesy=(double*) malloc(sizeof(double)*dimension);
-	p=(char**)malloc(sizeof(char*)*dimension);
-	for(int i=0;i<dimension;i++)
-		p[i]=(char*)malloc(sizeof(char)*dimension*15);
-	conv=(char**)malloc(sizeof(char*)*dimension);
-	for(int i=0;i<dimension;i++)
-		conv[i]=(char*)malloc(sizeof(char)*dimension*15);
-
-	d1=(float) (d);	
-	char trgb[]="read.ppm";
-	char tcon[]="read1.ppm";
-	write=fopen(trgb,"w");
-	write1=fopen(tcon,"w");
-	for(int i=0;i<d;i++)
-	{	valuesx[i]=cos(2*i*M_PI/(d));
-		valuesy[i]=sin(2*i*M_PI/(d));
-
-	}
-	int ix=0;
-	int count =0;
-	for(int tx=0;tx<dimension ; tx+= block_size)
-	{//	printf("%d",count);
-		size_t * args = malloc(sizeof(size_t));
-		*args= tx;
-		pthread_create(&compute_threads[ix],NULL,newtonmethod,(void*)args);
-		count=count+1;
-		ix=ix+1;
-	}
-	for(int tx=0; tx<threads;++tx){
-		if(pthread_join(compute_threads[tx],NULL)){
-			printf("Error  \n");
-			exit(1);
+	for(int op=0;op<1;op++){
+		timespec_get(&ts,TIME_UTC);
+		d=strtol(argv[3],NULL,10);
+		pthread_mutex_init(&mutex_write, NULL);
+		rgbscaling=16581375/(d);
+		if(argv[1][1]>argv[2][1])
+		{threads=strtol((strtok(argv[1], "-t")),NULL,10); 
+			dimension=strtol((strtok(argv[2],"-l")),NULL,10);}
+		else
+		{threads=strtol((strtok(argv[2], "-t")),NULL,10); 
+			dimension=strtol((strtok(argv[1],"-l")),NULL,10);
 		}
+		item_done=(char*)malloc(sizeof(char)*dimension);
+		block_size=dimension/threads;
+		pthread_t* compute_threads = (pthread_t*)malloc(sizeof(pthread_t*)*threads);
+		for (int ix =0 ; ix <dimension; ++ix){
+
+			item_done[ix]=0;
+
+		}
+		pthread_t* write_thread = (pthread_t*)malloc(sizeof(pthread_t*));
+		div1=(4.0/(dimension-1));
+		valuesx=(double*) malloc(sizeof(double)*dimension);
+		valuesy=(double*) malloc(sizeof(double)*dimension);
+		p=(char**)malloc(sizeof(char*)*dimension);
+		for(int i=0;i<dimension;i++)
+			p[i]=(char*)malloc(sizeof(char)*dimension*15);
+		conv=(char**)malloc(sizeof(char*)*dimension);
+		for(int i=0;i<dimension;i++)
+			conv[i]=(char*)malloc(sizeof(char)*dimension*15);
+
+		d1=(float) (d);	
+		char trgb[]="read.ppm";
+		char tcon[]="read1.ppm";
+		write=fopen(trgb,"w");
+		fprintf(write,"%s\n","P3");
+		fprintf(write,"%d %d\n",dimension,dimension);
+		fprintf(write,"%d\n",255);
+		write1=fopen(tcon,"w");
+		fprintf(write1,"%s\n","P3");
+		fprintf(write1,"%d %d\n",dimension,dimension);
+		fprintf(write1,"%d\n",50);
+		for(int i=0;i<d;i++)
+
+
+		{	valuesx[i]=cos(2*i*M_PI/(d));
+			valuesy[i]=sin(2*i*M_PI/(d));
+
+		}
+		int ix=0;
+		int count =0;
+		for(int tx=0;tx<threads ; tx++)
+		{//	printf("%d",count);
+			size_t * args = malloc(sizeof(size_t));
+			*args= tx;
+			pthread_create(&compute_threads[ix],NULL,newtonmethod,(void*)args);
+			count=count+1;
+			ix=ix+1;
+		}
+		pthread_create(&write_thread,NULL,write_main,NULL);
+		for(int tx=0; tx<threads;++tx){
+			if(pthread_join(compute_threads[tx],NULL)){
+				printf("Error  \n");
+				exit(1);
+			}
+		}
+		fclose(write);
+		fclose(write1);
+		timespec_get(&ts1,TIME_UTC);
+		totaltime=totaltime+measuretime(ts,ts1);
+	/*	if(op!=9)
+		  {remove(trgb);
+		  remove(tcon);}*/
+		free(compute_threads);
+		free(valuesx);
+		free(valuesy);
 	}
-
-	fprintf(write,"%s\n","P3");
-	fprintf(write,"%d %d\n",dimension,dimension);
-	fprintf(write,"%d\n",255);
-	for(int i=0;i<dimension;i++)
-		fputs(p[i],write);
-	int iter=50;
-	fclose(write);
-	fprintf(write1,"%s\n","P3");
-	fprintf(write1,"%d %d\n",dimension,dimension);
-	fprintf(write1,"%d\n",iter);
-	for(int j=0;j<dimension;j++)
-		fputs(conv[j],write1);
-
-
-fclose(write1);
-
-timespec_get(&ts1,TIME_UTC);
-totaltime=totaltime+measuretime(ts,ts1);
-if(op!=9)
-{remove(trgb);
- 	remove(tcon);}
-free(compute_threads);
-free(valuesx);
-free(valuesy);}
-printf("%Lf",totaltime/10);
-return 0;
+	printf("%Lf",totaltime);
+	return 0;
 }
 
 void* newtonmethod(void *restrict arg)
 {	char c[100];
 	char e[100];
 	size_t input= *((size_t*)arg);
-	int new_block_size = input +block_size < dimension ? input+block_size : dimension;
 	int n,result,flag;
 	free(arg);
-	for ( size_t i=input; i<new_block_size; i++){ 	
+	for ( size_t i=input; i<dimension; i+=threads){ 	
 		p[i][0]='\0';
 		conv[i][0]='\0';
 		flag=0;
@@ -161,8 +163,16 @@ void* newtonmethod(void *restrict arg)
 			counter=counter+3;
 		}	strcat(p[i],"\n");
 		strcat(conv[i],"\n");
+		pthread_mutex_lock(&mutex_write);
+		item_done[i] =1;
+		pthread_mutex_unlock(&mutex_write);
+//		printf("itemdone %d",item_done[i]);
+		
+
 	}}
 void mul_cpx_mainfile(double *a_re,double *a_im,double *b_re,double *b_im,int k){
+
+
 	double a,b;
 	for(int j=0;j<=k;j++)
 	{       if(k==0)
@@ -202,3 +212,29 @@ long double measuretime(struct timespec ts,struct timespec ts1)
 		finaltime=s2-s1+((ns2-ns1)/1000000000.0);
 	return finaltime;
 }
+
+
+
+void * write_main(void * restrict args){
+	struct timespec sleep_timespec;
+	char * item_done_loc =(char*)calloc(dimension,sizeof(char));
+	for (size_t ix =0 ;ix< dimension; ){
+		pthread_mutex_lock(&mutex_write);
+		if(item_done[ix] != 0)
+			memcpy(item_done_loc ,item_done, dimension*sizeof(char));
+		
+
+		pthread_mutex_unlock(&mutex_write);
+		if (item_done_loc[ix]==0){
+			nanosleep(&sleep_timespec,NULL);
+				continue;
+		}
+		for (;ix <dimension && item_done_loc[ix] !=0;++ix){
+			fputs(p[ix],write);
+			fputs(conv[ix],write1);
+			
+//		printf("ix %d",ix);
+		}
+		}
+	
+}	
