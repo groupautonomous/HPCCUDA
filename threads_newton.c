@@ -113,14 +113,14 @@ int main(int argc, char *argv[])
 }
 
 void* newtonmethod(void *restrict arg)
-{	char c[100];
+{	char c[20];
 	char e[100];
 	size_t input= *((size_t*)arg);
 	int n,result,flag;
 	free(arg);
 	for ( size_t i=input; i<dimension; i+=threads){ 	
-		p[i][0]='\0';
-		conv[i][0]='\0';
+		char *l=p[i];
+		char *h=conv[i];
 		flag=0;
 		int counter=0;
 		int root;
@@ -158,11 +158,12 @@ void* newtonmethod(void *restrict arg)
 			root=result*rgbscaling	;
 			sprintf(c,"%d %d %d ",(int)root/(255*255),(int)(root/255)%255,(int) root%255);
 			sprintf(e,"%d %d %d ",n,n,n);
-			strcat(conv[i],e);
-			strcat(p[i],c);	
+			l=stpcpy(l,c);	
+			h=stpcpy(h,e);
+			
 			counter=counter+3;
-		}	strcat(p[i],"\n");
-		strcat(conv[i],"\n");
+		}	//p[i]=stpcpy(p[i],"\n");
+//		strcat(conv[i],"\n");
 		pthread_mutex_lock(&mutex_write);
 		item_done[i] =1;
 		pthread_mutex_unlock(&mutex_write);
