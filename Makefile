@@ -1,9 +1,17 @@
 CC=gcc
-CFLAGS=-c -Wall 
+CFLAGS=-c -Ofast 
 EXECUTE=newton
 
+.PHONY : clean
+
+all : $(EXECUTE)
+
 $(EXECUTE): $(EXECUTE).o
-	$(CC) -o $(EXECUTE) $(EXECUTE).o -lm
+	$(CC) -o $(EXECUTE) $(EXECUTE).o -lm -pthread
 
 $(EXECUTE).o: $(EXECUTE).c
-	$(CC)  $(CFLAGS) $(EXECUTE).c -lm
+	$(CC) $(CFLAGS) $(EXECUTE).c -lm -pthread
+
+
+clean : 
+	rm -f $(EXECUTE).o $(EXECUTE)
