@@ -24,6 +24,8 @@ char **p;
 char *item_done;
 char **conv;
 /*function declaration*/
+void tostring(char str[], int num);
+
 long double measuretime(struct timespec ts,struct timespec ts1);
 void *newtonmethod(void * restrict arg);
 void * write_main(void * restrict args);
@@ -114,7 +116,7 @@ int main(int argc, char *argv[])
 
 void* newtonmethod(void *restrict arg)
 {	char c[20];
-	char e[100];
+	char e[20];
 	size_t input= *((size_t*)arg);
 	int n,result,flag;
 	free(arg);
@@ -156,12 +158,32 @@ void* newtonmethod(void *restrict arg)
 						}	}
 				}}
 			root=result*rgbscaling	;
-			sprintf(c,"%d %d %d ",(int)root/(255*255),(int)(root/255)%255,(int) root%255);
-			sprintf(e,"%d %d %d ",n,n,n);
-			l=stpcpy(l,c);	
+				tostring(c,(int)root/(255*255) );
+				l=stpcpy(l,c);
+
+			l=stpcpy(l," ");
+			tostring(c,(int)(root/255)%255 );
+			l=stpcpy(l,c);
+			l=stpcpy(l," ");
+			tostring(c,(int) root%255 );
+                        l=stpcpy(l,c);
+                        l=stpcpy(l," ");
+			tostring(e,n);
+
 			h=stpcpy(h,e);
+			h=stpcpy(h," ");
+			h=stpcpy(h,e);
+                        h=stpcpy(h," ");
+			h=stpcpy(h,e);
+                        h=stpcpy(h," ");
+
+if(j==dimension-1)
+{h=stpcpy(h,"\n");
+	l=stpcpy(l,"\n");
+}
+		//	sprintf(c,"%d %d %d ",(int)root/(255*255),(int)(root/255)%255,(int) root%255);
+		//	sprintf(e,"%d %d %d ",n,n,n);
 			
-			counter=counter+3;
 		}	//p[i]=stpcpy(p[i],"\n");
 //		strcat(conv[i],"\n");
 		pthread_mutex_lock(&mutex_write);
@@ -238,4 +260,28 @@ void * write_main(void * restrict args){
 		}
 		}
 	
-}	
+}
+void tostring(char str[], int num)
+{
+    if(num==0)
+    {   str[0]='0';
+    		str[1]=0;}
+    else
+    {
+	int i, rem, len = 0, n;
+
+    n = num;
+    while (n != 0)
+    {
+        len++;
+        n /= 10;
+    }
+    for (i = 0; i < len; i++)
+    {
+        rem = num % 10;
+        num = num / 10;
+        str[len - (i + 1)] = rem + '0';
+    }
+    str[len] = '\0';}
+}
+
