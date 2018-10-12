@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 			item_done[ix]=0;
 
 		}
-		pthread_t* write_thread = (pthread_t*)malloc(sizeof(pthread_t*));
+		pthread_t write_thread = (pthread_t)malloc(sizeof(pthread_t));
 		div1=(4.0/(dimension-1));
 		valuesx=(double*) malloc(sizeof(double)*dimension);
 		valuesy=(double*) malloc(sizeof(double)*dimension);
@@ -95,13 +95,14 @@ int main(int argc, char *argv[])
 			count=count+1;
 			ix=ix+1;
 		}
-		pthread_create(&write_thread[0],NULL,write_main,NULL);
+		pthread_create(&write_thread,NULL,write_main,NULL);
 		for(int tx=0; tx<threads;++tx){
 			if(pthread_join(compute_threads[tx],NULL)){
 				printf("Error  \n");
 				exit(1);
 			}
 		}
+		pthread_join(write_thread,NULL);
 		fclose(write);
 		fclose(write1);
 		timespec_get(&ts1,TIME_UTC);
