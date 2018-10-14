@@ -1,7 +1,17 @@
+# Assigment 2 - HPC 039
+
+* Earl Fernando Panimayam Fernando
+* Anand
+* Anoop
 
 
 
-# Single thread with 1000 lines 
+
+
+
+
+## Benchmarks
+### Single thread with 1000 lines 
 
 |Polynomial  | 1       | 2       |5        |7        | 
 |:-----------|:-------:|--------:|:-------:|--------:|
@@ -11,7 +21,7 @@
 
 
 
-# Multi-threaded with 1000 lines and polynomial x^5-1
+### Multi-threaded with 1000 lines and polynomial x^5-1
 
 |Threads     | 1       | 2       |3        |4        | 
 |:-----------|:-------:|--------:|:-------:|--------:|
@@ -20,11 +30,10 @@
 
 
 
-# 10 Threads and polynomial degree of 7
+### 10 Threads and polynomial degree of 7
 
 |Lines        | 1000    | 50000  |
 |:------------|:-------:|-------:|
 |Actual time  | 0.058   |121.192 |
 |Max runtime  | 0.26    |594     |
-
 
