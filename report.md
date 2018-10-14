@@ -5,11 +5,7 @@
 * Anoop
 
 ## Problem Description
-
-
-
-
-
+Use posix threads to parallelize the given problem of finding the root of a given polynomial function . By using newton's method iteratively for calculating the root to which a certain point in space converges. By discritizing these points in the form of a matrix of given dimension with their extreme points having their real and imaginary part ranging from -2 and 2. Further use these values in creating a PPM image file for the time taken convergence of these roots and the root to which a certain point converges. 
 
 ## Arguments Parsing 
 
@@ -67,6 +63,89 @@ void * write_main(void *  args){
 	
 }
 ~~~
+
+
+ ## Newton Method 
+  ~~~
+  void* newtonmethod(void * arg)
+{	char c[20];
+	char e[20];
+	size_t input= *((size_t*)arg);
+	int n,result,flag;
+	free(arg);
+	for ( size_t i=input; i<dimension; i+=threads){ 	
+		char *l=p[i];
+		char *h=conv[i];
+		flag=0;
+		int counter=0;
+		int root;
+		double are,aim,bre,bim;
+		for(int j=0;j<dimension;j++)
+		{	n=0;
+			result=0;
+			are=(-2+div1*j);
+			aim=(-2+(div1*i));
+			flag=0;
+			for(int k=0;k<200;k++)
+			{//	printf("are=%f",are);
+				if(flag==1)
+				{
+					n=k;
+					break;}
+				else
+				{
+					mul_cpx_mainfile(&bre,&bim,&are,&aim,d-1);
+					are=are*((d1-1)/d1)+((bre/((bre*bre+bim*bim)*d1)));
+					aim=(aim*((d1-1)/d1)-(bim/((bre*bre+bim*bim)*d1)));
+					for(int x=0;x<d;x++)
+					{if((((are-valuesx[x])*(are-valuesx[x]))+((aim-valuesy[x])*(aim-valuesy[x])))<0.000001)	
+						{flag=1;
+							result=x;
+							break;	
+						}	
+
+						else if((((are*are)+(aim*aim))<0.000001)||are>10000000000||aim>10000000000)
+						{flag=1;
+							result=0;
+							break;
+						}	}
+				}}
+			root=result*rgbscaling	;
+				tostring(c,(int)root/(255*255) );
+				l=stpcpy(l,c);
+
+			l=stpcpy(l," ");
+			tostring(c,(int)(root/255)%255 );
+			l=stpcpy(l,c);
+			l=stpcpy(l," ");
+			tostring(c,(int) root%255 );
+                        l=stpcpy(l,c);
+                        l=stpcpy(l," ");
+			tostring(e,n);
+
+			h=stpcpy(h,e);
+			h=stpcpy(h," ");
+			h=stpcpy(h,e);
+                        h=stpcpy(h," ");
+			h=stpcpy(h,e);
+                        h=stpcpy(h," ");
+
+if(j==dimension-1)
+{h=stpcpy(h,"\n");
+	l=stpcpy(l,"\n");
+}
+			
+		}
+		pthread_mutex_lock(&mutex_write);
+		item_done[i] =1;
+		pthread_mutex_unlock(&mutex_write)
+
+}}  
+  ~~~
+  
+ 
+ 
+ 
 
 
 
