@@ -24,7 +24,7 @@ if(argv[1][1]>argv[2][1])
 
 ## Synchronization of the compute thread and write thread
 
-After the intiallization of the write thread and the compute thread based on the number of threads from the input. We decided to let each thread to compute row by row and to synchronize this with the write thread we implemneted a global array which stored the information of whether the computation for the particular row was done using binary 0 or 1. We tried making the computation block by block for each thread, but it was hard to synchronize the writing thread using this method so we didnt proceed with that method. The updates to the global array after the computation of a row was done using a mutex.
+After the intiallization of the write thread and the compute thread based on the number of threads from the input. We decided to let each thread to compute row by row and to synchronize this with the write thread we implemneted a global array which stored the information of whether the computation for the particular row was done using binary 0 or 1. We tried making the computation block by block for each thread, but it was hard to synchronize the writing thread using this method so we didnt proceed with that method. After the computation of roots of a row by the compute thread, it updates this information on the global array using mutexs  . Until, the information of the computation is updated the write thread was made to sleep for few nanoseconds and as soon as this information was updated , the write thread makes a local copy of the global array using the mutex and then based on the information from this local copy , it writes the information on to both the .ppm files.
 ~~~
 pthread_mutex_init(&mutex_write, NULL);
 item_done=(char*)malloc(sizeof(char)*dimension);
@@ -34,11 +34,6 @@ for (int ix =0 ; ix <dimension; ++ix){
 
 }
 ~~~
-
-## Data transfer between compute thread and write thread 
-
-The main thread allocates different row computation for different threads and the write thread too .After the computation of roots of a row by the compute thread, it updates this information on the global array using mutexs  . Until, the information of the computation is updated the write thread was made to sleep for few nanoseconds and as soon as this information was updated , the write thread makes a local copy of the global array using the mutex and then based on the information from this local copy , it writes the information on to both the .ppm files.
-
 ~~~
 void * write_main(void *  args){
 	struct timespec sleep_timespec;
@@ -60,9 +55,15 @@ void * write_main(void *  args){
 		
 		}
 		}
-	
 }
+
 ~~~
+
+## Data transfer between compute thread and write thread 
+
+We created two globals arrays , one was to store the number of iterations it takes to reach the roots and other was to store the roots to which the points converge to. Since the there was a cap for the number of iterations it takes to reach a root, we capped it to 200. When the write thread wants to write the information to the ppm file, it accesses the information from these global arrays using the row index to write on to the ppm file
+
+
 
 
  ## Newton Method 
