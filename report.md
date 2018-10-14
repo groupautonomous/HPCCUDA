@@ -24,7 +24,7 @@ if(argv[1][1]>argv[2][1])
 
 ## Synchronization of the compute thread and write thread
 
-After the intiallization of the write thread and the compute thread based on the number of threads from the input. We decided to let each thread to compute row by row and to synchronize this with the write thread we implemneted a global array which stored the information of whether the computation for the particular row was done using binary 0 or 1. We tried making the computation block by block for each thread, but it was hard to synchronize the writing thread using this method so we didnt proceed with that method. After the computation of roots of a row by the compute thread, it updates this information on the global array using mutexs  . Until, the information of the computation is updated the write thread was made to sleep for few nanoseconds and as soon as this information was updated , the write thread makes a local copy of the global array using the mutex and then based on the information from this local copy , it writes the information on to both the .ppm files.
+After the intiallization of the write thread and the compute thread based on the number of threads from the input. We decided to let each thread to compute row by row and to synchronize this with the write thread we implemneted a global array which stored the information of whether the computation for the particular row was done using binary 0 or 1. We tried making the computation block by block for each thread, but it was hard to synchronize the writing thread using this method so we didnt proceed with that method. After the computation of roots of a row by the compute thread, it updates this information on the global array using mutexs  . Until, the information of the computation is updated the write thread was made to sleep for few nanoseconds and as soon as this information was updated , the write thread makes a local copy of the global array using the mutex and then based on the information from this local copy , it writes the information on to both the .ppm files.  In order to make the write part faster the rgb values were converted to a string so that the values could be written directly to a file using fputs.This was done by writing a separate function that converts integer to a string instead of sprintf. All the columns in a certain row were appended into a newstring by using stpcpy which aligns the pointer to the end of the string.
 ~~~
 pthread_mutex_init(&mutex_write, NULL);
 item_done=(char*)malloc(sizeof(char)*dimension);
@@ -67,6 +67,13 @@ We created two globals arrays , one was to store the number of iterations it tak
 
 
  ## Newton Method 
+ In order to calculate the root to which a certian point converges. The each iteration was divided into several different subtasks.
+
+1. Do newton iteration .
+2. Check for convergence by comparing with precalculated root values.
+3. Else Check for convergence by comparing with the origin.
+4. Else check for divergence. In order to speed up the process separate function were written for calculating the power of the complex number. Further the newton's equation for simplified manually by hand so that power of the roots needs to calculated just once. Use of inbuild functions like pow and sqrt were also removed. After calculating the roots and convergence of a certain row of the matrix. The roots were converted to RGB values.
+
   ~~~
   void* newtonmethod(void * arg)
 {	char c[20];
