@@ -4,7 +4,69 @@
 * Anand
 * Anoop
 
+## Problem Description
 
+
+
+
+
+
+## Arguments Parsing 
+
+It was stated that the last argument would be the degree of the polynomial , so we asssumed that the last argument was the degree. The second and third arguments could be of any order but when we compare the strings 'l' and 't' , l is less that t ablhabetically so we made a comparision betweeen both the string and slipt the numbers after the letters and assigned them globally as the number of threads and dimensions.
+
+~~~
+if(argv[1][1]>argv[2][1])
+		{threads=strtol((strtok(argv[1], "-t")),NULL,10); 
+			dimension=strtol((strtok(argv[2],"-l")),NULL,10);}
+		else
+		{threads=strtol((strtok(argv[2], "-t")),NULL,10); 
+			dimension=strtol((strtok(argv[1],"-l")),NULL,10);
+}
+~~~
+
+
+## Synchronization of the compute thread and write thread
+
+After the intiallization of the write thread and the compute thread based on the number of threads from the input. We decided to let each thread to compute row by row and to synchronize this with the write thread we implemneted a global array which stored the information of whether the computation for the particular row was done using binary 0 or 1. We tried making the computation block by block for each thread, but it was hard to synchronize the writing thread using this method so we didnt proceed with that method. The updates to the global array after the computation of a row was done using a mutex.
+~~~
+pthread_mutex_init(&mutex_write, NULL);
+item_done=(char*)malloc(sizeof(char)*dimension);
+for (int ix =0 ; ix <dimension; ++ix){
+
+			item_done[ix]=0;
+
+}
+~~~
+
+## Data transfer between compute thread and write thread 
+
+The main thread allocates different row computation for different threads and the write thread too .After the computation of roots of a row by the compute thread, it updates this information on the global array using mutexs  . Until, the information of the computation is updated the write thread was made to sleep for few nanoseconds and as soon as this information was updated , the write thread makes a local copy of the global array using the mutex and then based on the information from this local copy , it writes the information on to both the .ppm files.
+
+~~~
+void * write_main(void *  args){
+	struct timespec sleep_timespec;
+	char * item_done_loc =(char*)calloc(dimension,sizeof(char));
+	for (size_t ix =0 ;ix< dimension; ){
+		pthread_mutex_lock(&mutex_write);
+		if(item_done[ix] != 0)
+			memcpy(item_done_loc ,item_done, dimension*sizeof(char));
+		
+
+		pthread_mutex_unlock(&mutex_write);
+		if (item_done_loc[ix]==0){
+			nanosleep(&sleep_timespec,NULL);
+				continue;
+		}
+		for (;ix <dimension && item_done_loc[ix] !=0;++ix){
+			fputs(p[ix],write);
+			fputs(conv[ix],write1);
+		
+		}
+		}
+	
+}
+~~~
 
 
 
