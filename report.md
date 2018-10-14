@@ -155,7 +155,6 @@ if(j==dimension-1)
   
  
  
- 
 
 
 
@@ -188,3 +187,9 @@ if(j==dimension-1)
 |Actual time  | 0.058   |121.192 |
 |Max runtime  | 0.26    |594     |
 
+
+
+ Single thread  (Degree of Polynomial vs Time in sec): ![gras](1.jpg)
+ 
+ 
+ Multiple thread(No of threads vs Time in sec): ![gras](2.jpg)	
