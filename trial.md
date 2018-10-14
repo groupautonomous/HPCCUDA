@@ -6,11 +6,13 @@
 
 ##### Anand Hariharan
 <h3>Problem Description</h3>
-Use posix threads to parallelize the given problem of finding the root of a given polynomial function.
-By using newton's method iteratively in the 
+Use posix threads to parallelize the given problem of finding the root of a given polynomial function .
+By using newton's method iteratively for calculating the root to which a certain point in space converges.
+By discritizing these points in the form of a matrix of given dimension with their extreme points having their real and imaginary part ranging from -2 and 2. Further use these values in creating a PPM image file for the time taken convergence of these roots and the root to which a certain point converges.
+
+## Newton Method
 
 
-Use Newton's method to find the root of a given function for values ranging from -2-2i to 2+2i by discritizing the values in the form of a matrix of given dimension.
-Further write these roots and the time taken for their convergence to a PPM file which inturn creates their respective image. Further use posix threads to parallelize the given problem and 
-execute it within the given time limit.
+
+
 
