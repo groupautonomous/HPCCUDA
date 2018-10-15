@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-c -Ofast 
+CFLAGS=-c -Ofast -g 
 EXECUTE=newton
 
 .PHONY : clean
