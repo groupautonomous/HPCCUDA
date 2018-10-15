@@ -189,7 +189,7 @@ if(j==dimension-1)
 
 
 
- Single thread  (Degree of Polynomial vs Time in sec): ![gras](1.jpg)
+ Single thread  (Degree of Polynomial vs Time in sec): ![gras](reportextra/1.jpg)
  
  
- Multiple thread(No of threads vs Time in sec): ![gras](2.jpg)	
+ Multiple thread(No of threads vs Time in sec): ![gras](reportextra/2.jpg)	
