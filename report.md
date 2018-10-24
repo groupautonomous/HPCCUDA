@@ -3,6 +3,10 @@
 * Earl Fernando Panimayam Fernando
 * Anand Hariharan
 * Anoop 
+## Introduction
+
+The goal of the assignment is to implement multi-threading using OpenMP to achieve task and data parallelism. OpenMP is an API that provides a simple way for parallelism using threads on a shared memory computers. The OpenMP implementation of multi-threading is done by forking from the master thread into set number of slave threads which run concurrently, with the runtime environment allocating them to different processors. OpenMP is particularly well-suited for fine grained parallelism and the programmer needs to
+perform lesser control of execution flow and memory usage than POSIX threads.
 
 ## Problem Description
 Use posix threads to parallelize the given problem of finding the root of a given polynomial function . By using newton's method iteratively for calculating the root to which a certain point in space converges. By discritizing these points in the form of a matrix of given dimension with their extreme points having their real and imaginary part ranging from -2 and 2. Further use these values in creating a PPM image file for the time taken convergence of these roots and the root to which a certain point converges. 
